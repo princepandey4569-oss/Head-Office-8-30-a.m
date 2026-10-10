@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">FreshBasket AI architecture</title>
+  <desc id="desc">Synthetic business data is generated and injected with repeatable challenge scenarios, analyzed into a store risk report, and served by FastAPI to a React operations workspace. Manager decisions are stored as simulated actions. No external systems are changed.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9f9f9"/><stop offset="1" stop-color="#f2f2f2"/></linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#142b3e"/><stop offset="1" stop-color="#2f5675"/></linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="11" flood-color="#1b3042" flood-opacity=".08"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#6b8198"/></marker>
+    <style>
+      text{font-family:Inter,Segoe UI,Arial,sans-serif} .tiny{font-size:13px;letter-spacing:1.7px;font-weight:800;fill:#6b7b8b}.heading{font-size:22px;font-weight:750;fill:#213546}.body{font-size:15px;fill:#606d77}.small{font-size:13px;fill:#7c8690}.num{font-size:13px;letter-spacing:1px;font-weight:800;fill:#4c6a8a}.box{fill:#ffffff;stroke:#dbe2e9;stroke-width:1.5;rx:18;filter:url(#shadow)}.arrow{fill:none;stroke:#6b8198;stroke-width:2.5;marker-end:url(#arrow)}.chip{fill:#f4f4f4;stroke:#d2dde8}.chiptext{font-size:12px;font-weight:750;fill:#365473}
+    </style>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="44" y="38" width="1352" height="158" rx="24" fill="url(#hero)"/>
+  <circle cx="1295" cy="87" r="85" fill="none" stroke="#dfe8f1" stroke-opacity=".12" stroke-width="1.5"/>
+  <circle cx="1295" cy="87" r="57" fill="none" stroke="#dfe8f1" stroke-opacity=".12" stroke-width="1.5"/>
+  <text x="82" y="82" font-size="13" font-weight="800" letter-spacing="2.4" fill="#bfcfe0">CYPHER 2026 · CHALLENGE 04</text>
+  <text x="82" y="128" font-size="36" font-weight="760" letter-spacing="-1.1" fill="#ffffff">FreshBasket AI</text>
+  <text x="82" y="161" font-size="17" fill="#d6dfe8">Franchise operations intelligence · observe → connect → compare → recommend → approve</text>
+  <text x="80" y="244" class="tiny">01 / SOURCE DATA</text>
+  <rect class="box" x="70" y="268" width="280" height="214"/>
+  <text x="98" y="307" class="num">INPUTS</text>
+  <text x="98" y="343" class="heading">Synthetic records</text>
+  <text x="98" y="375" class="body">Stores &amp; products</text>
+  <text x="98" y="400" class="body">Sales &amp; inventory</text>
+  <text x="98" y="425" class="body">Wastage &amp; purchase orders</text>
+  <text x="98" y="450" class="body">Customers, staff &amp; compliance</text>
+  <rect class="chip" x="98" y="458" width="154" height="0" rx="9"/>
+  <text x="98" y="467" class="small">data_generator.py</text>
+  <path class="arrow" d="M350 374H397"/>
+
+  <text x="398" y="244" class="tiny">02 / DETECT &amp; EXPLAIN</text>
+  <rect class="box" x="405" y="268" width="290" height="214"/>
+  <text x="434" y="307" class="num">ANALYSIS ENGINE</text>
+  <text x="434" y="343" class="heading">Rule-based reasoning</text>
+  <text x="434" y="375" class="body">Join signals by store / SKU</text>
+  <text x="434" y="400" class="body">Compare dated snapshots</text>
+  <text x="434" y="425" class="body">Score risks &amp; link evidence</text>
+  <text x="434" y="450" class="body">Rank options &amp; trade-offs</text>
+  <text x="434" y="467" class="small">inject_problem.py · data_analyzer.py</text>
+  <path class="arrow" d="M695 374H742"/>
+
+  <text x="744" y="244" class="tiny">03 / REPORT</text>
+  <rect class="box" x="750" y="268" width="250" height="214"/>
+  <text x="779" y="307" class="num">DATA CONTRACT</text>
+  <text x="779" y="343" class="heading">Store risk report</text>
+  <text x="779" y="375" class="body">CSV report + evidence fields</text>
+  <text x="779" y="400" class="body">Risk components &amp; priorities</text>
+  <text x="779" y="425" class="body">SKU actions &amp; linked signals</text>
+  <text x="779" y="450" class="body">Current synthetic snapshot</text>
+  <text x="779" y="467" class="small">data/store_risk_report.csv</text>
+  <path class="arrow" d="M1000 374H1047"/>
+
+  <text x="1049" y="244" class="tiny">04 / API</text>
+  <rect class="box" x="1055" y="268" width="315" height="214"/>
+  <text x="1084" y="307" class="num">FASTAPI</text>
+  <text x="1084" y="343" class="heading">Operations API</text>
+  <text x="1084" y="375" class="body">Morning brief, stores, summaries</text>
+  <text x="1084" y="400" class="body">Stock balancing &amp; waste/expiry</text>
+  <text x="1084" y="425" class="body">Non-persistent what-if simulator</text>
+  <text x="1084" y="450" class="body">Approval / rejection history</text>
+  <text x="1084" y="467" class="small">backend.py · localhost:8000</text>
+
+  <path class="arrow" d="M1212 482V530H720V570"/>
+  <text x="80" y="550" class="tiny">05 / HUMAN WORKSPACE</text>
+  <rect class="box" x="70" y="576" width="880" height="224"/>
+  <text x="104" y="618" class="num">REACT UI · LOCALHOST:5173</text>
+  <text x="104" y="657" class="heading">Manager reviews the evidence and chooses the next move</text>
+  <rect class="chip" x="104" y="681" width="180" height="34" rx="10"/><text x="122" y="703" class="chiptext">Decision Centre</text>
+  <rect class="chip" x="297" y="681" width="180" height="34" rx="10"/><text x="315" y="703" class="chiptext">Store Performance</text>
+  <rect class="chip" x="490" y="681" width="180" height="34" rx="10"/><text x="508" y="703" class="chiptext">Waste &amp; Expiry</text>
+  <rect class="chip" x="683" y="681" width="220" height="34" rx="10"/><text x="701" y="703" class="chiptext">Stock Balancing / Scenario Lab</text>
+  <text x="104" y="753" class="small">Includes a persistent light/dark theme, personalized manager profile, store search and daily tasks.</text>
+
+  <path class="arrow" d="M950 682H1000"/>
+  <rect class="box" x="1008" y="576" width="362" height="224"/>
+  <text x="1040" y="618" class="num">HUMAN APPROVAL</text>
+  <text x="1040" y="657" class="heading">Simulated decision log</text>
+  <text x="1040" y="689" class="body">Approved / rejected recommendation</text>
+  <text x="1040" y="714" class="body">Manager note + timestamp</text>
+  <text x="1040" y="739" class="body">CSV history for the demo</text>
+  <text x="1040" y="772" class="small">data/approved_actions.csv</text>
+
+  <rect x="70" y="830" width="1300" height="39" rx="11" fill="#ededed"/>
+  <text x="91" y="854" font-size="13" font-weight="700" fill="#536271">BOUNDARY:</text>
+  <text x="184" y="854" font-size="13" fill="#606d78">Synthetic data · explainable heuristics · simulations do not change stock, prices, purchase orders, or external systems.</text>
+</svg>
