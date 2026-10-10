@@ -1,17 +1,17 @@
-# Python
 # Environment variables and secrets
 .env
 .env.*
 !.env.example
+
+# Python
 .venv/
+venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# Demo data are intentionally kept in Git for a reproducible hosted hackathon demo.
-# Do not exclude data/*.csv: the hosted API needs these files.
-# Runtime-created decisions and refresh metadata may be committed by a local git add -A;
-# inspect changes before committing if you want to keep those local.
+# Demo data are intentionally kept in Git
+# Do not exclude data/*.csv
 
 # Frontend
 frontend/node_modules/
