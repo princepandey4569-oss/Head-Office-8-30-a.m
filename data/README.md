@@ -1,5 +1,6 @@
 # Challenge 04 – Head Office, 8:30 a.m.
-**FreshBasket Franchise Network**  ·  Data snapshot: morning of 2026-11-16 (stock); daily history up to 2026-11-15
+**FreshBasket Franchise Network**  ·  Data snapshot
+: morning of 2026-11-16 (stock); daily history up to 2026-11-15
 
 ## Files
 

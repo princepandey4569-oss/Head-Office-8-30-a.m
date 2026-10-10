@@ -84,13 +84,10 @@ const DESIGNATIONS = [
   { key: 'store', label: 'Store Manager', level: 'Level 4', priority: 'Low', scope: 'Assigned store', description: 'Own routine store follow-up and complete local remediation tasks.' },
   { key: 'shift', label: 'Shift Supervisor', level: 'Level 5', priority: 'Routine', scope: 'Assigned store / current shift', description: 'Complete shelf checks, date-code rotation, physical verification and shift handover.' },
 ];
-const OPERATING_REGIONS = ['Karnataka South', 'Karnataka North', 'Karnataka Coast', 'Tamil Nadu'];
+const OPERATING_REGIONS = ['Karnataka South'];
 const OPERATING_AREAS_BY_REGION = {
-  'Karnataka South': ['Bengaluru North', 'Bengaluru Central', 'Bengaluru South', 'Mysuru East', 'Mysuru Central', 'Mysuru West'],
-  'Karnataka North': ['Hubballi North', 'Hubballi Central', 'Hubballi South'],
-  'Karnataka Coast': ['Mangaluru North', 'Mangaluru Coastal', 'Mangaluru South'],
-  'Tamil Nadu': ['Chennai North', 'Chennai Central', 'Chennai South'],
-};
+  'Karnataka South': ['Bengaluru North', 'Bengaluru Central', 'Bengaluru South'],
+  };
 const PRIORITY_OWNER = { Critical: 'head', High: 'regional', Medium: 'area', Low: 'store' };
 const ROLE_PAGES = {
   head: ['overview', 'decisions', 'stores', 'performance', 'analytics', 'balancing', 'waste', 'scenarios', 'tasks', 'approvals', 'workforce'],
@@ -100,7 +97,7 @@ const ROLE_PAGES = {
   shift: ['overview', 'stores', 'tasks', 'workforce'],
 };
 const roleDetails = (key) => DESIGNATIONS.find((item) => item.key === key) || DESIGNATIONS[0];
-const normalizeStoreId = (value) => { const match = String(value || '').trim().match(/^store_(\d{4})$/i); return match ? `Store_${match[1]}` : 'Store_0017'; };
+const normalizeStoreId = (value) => { const match = String(value || '').trim().match(/^FB-(\d{1,2})$/i); return match ? `FB-${match[1].padStart(2, '0')}` : 'FB-17'; };
 const storedRegionOrDefault = (value) => OPERATING_REGIONS.includes(value) ? value : 'Karnataka South';
 const storedAreaOrDefault = (regionValue, areaValue) => { const options = OPERATING_AREAS_BY_REGION[storedRegionOrDefault(regionValue)] || []; return options.includes(areaValue) ? areaValue : (options[0] || 'Bengaluru Central'); };
 const PRIORITY_COLORS = { Critical: '#bc5148', High: '#d78a32', Medium: '#6384a6', Low: '#346185' };
@@ -287,11 +284,11 @@ function MainPage({ theme, onToggleTheme, onGoToLogin, canGoBack, canGoForward, 
       <div className="public-hero-visual" aria-label="Illustration of the FreshBasket morning operations brief">
         <div className="hero-glow" />
         <div className="hero-preview-top"><span className="hero-preview-brand"><span className="hero-preview-leaf"><Icon name="basket" size={17} /></span><span><strong>Morning brief</strong><small>FRANCHISE NETWORK</small></span></span><span className="hero-preview-status"><i /> DEMO SNAPSHOT</span></div>
-        <div className="hero-preview-head"><div><span className="micro-label">NETWORK HEALTH</span><strong>Attention, clearly ranked.</strong></div><span className="hero-preview-risk"><small>Average risk</small><strong>14.1<small>/100</small></strong></span></div>
-        <div className="hero-preview-metrics"><div><small>Stores monitored</small><strong>1,000</strong><span>Network-wide view</span></div><div><small>Need attention</small><strong className="hero-risk-text">136</strong><span>Critical + high</span></div></div>
+        <div className="hero-preview-head"><div><span className="micro-label">NETWORK HEALTH</span><strong>Attention, clearly ranked.</strong></div><span className="hero-preview-risk"><small>Average risk</small><strong>39.0<small>/100</small></strong></span></div>
+        <div className="hero-preview-metrics"><div><small>Stores monitored</small><strong>25</strong><span>Current dataset</span></div><div><small>Need attention</small><strong className="hero-risk-text">5</strong><span>High-priority stores</span></div></div>
         <div className="hero-preview-queue"><div className="hero-preview-queue-head"><strong>Priority queue</strong><span>TOP FINDINGS</span></div>
-          <div className="hero-preview-row"><span className="hero-queue-number">01</span><span className="hero-queue-copy"><strong>Store_0017</strong><small>Stock gaps · late inbound · fresh waste</small></span><span className="hero-critical-pill">Critical</span></div>
-          <div className="hero-preview-row"><span className="hero-queue-number">02</span><span className="hero-queue-copy"><strong>Store_0012</strong><small>Compliance issues need follow-up</small></span><span className="hero-high-pill">High</span></div>
+          <div className="hero-preview-row"><span className="hero-queue-number">01</span><span className="hero-queue-copy"><strong>FB-17</strong><small>Sales decline · stock gaps · supplier delays</small></span><span className="hero-high-pill">High</span></div>
+          <div className="hero-preview-row"><span className="hero-queue-number">02</span><span className="hero-queue-copy"><strong>FB-21</strong><small>Compliance issues need follow-up</small></span><span className="hero-high-pill">High</span></div>
         </div>
         <div className="hero-preview-foot"><span><i /> Built from synthetic challenge data</span><span>Challenge 04 / 11</span></div>
       </div>
@@ -336,7 +333,7 @@ function LoginScreen({ onLogin, theme, onToggleTheme, onGoToMainPage, canGoBack,
     try { const savedRegion = storedRegionOrDefault(localStorage.getItem('freshbasket-manager-region')); return storedAreaOrDefault(savedRegion, localStorage.getItem('freshbasket-manager-area')); } catch { return 'Bengaluru Central'; }
   });
   const [assignedStoreId, setAssignedStoreId] = useState(() => {
-    try { return normalizeStoreId(localStorage.getItem('freshbasket-manager-store')); } catch { return 'Store_0017'; }
+    try { return normalizeStoreId(localStorage.getItem('freshbasket-manager-store')); } catch { return 'FB-17'; }
   });
   const [email, setEmail] = useState(DEMO_EMAIL);
   const [password, setPassword] = useState(DEMO_PASSWORD);
@@ -359,10 +356,10 @@ function LoginScreen({ onLogin, theme, onToggleTheme, onGoToMainPage, canGoBack,
       setError('Choose a designation before continuing.');
       return;
     }
-    const storeIdMatch = assignedStoreId.trim().match(/^store_(\d{4})$/i);
-    const cleanStoreId = storeIdMatch ? `Store_${storeIdMatch[1]}` : assignedStoreId.trim();
-    if (['store', 'shift'].includes(designation) && !/^STORE_\d{4}$/i.test(cleanStoreId)) {
-      setError('Enter a store ID in the format Store_0017.');
+    const storeIdMatch = assignedStoreId.trim().match(/^FB-(\d{1,2})$/i);
+    const cleanStoreId = storeIdMatch ? `FB-${storeIdMatch[1].padStart(2, '0')}` : assignedStoreId.trim();
+    if (['store', 'shift'].includes(designation) && !/^FB-\d{2}$/i.test(cleanStoreId)) {
+      setError('Enter a store ID from the dataset, for example FB-17.');
       return;
     }
     if (['regional', 'area'].includes(designation) && !region) {
@@ -420,7 +417,7 @@ function LoginScreen({ onLogin, theme, onToggleTheme, onGoToMainPage, canGoBack,
         <div className="login-role-note" id="designation-hint"><span className="login-role-level">{roleDetails(designation).level}</span><span>{roleDetails(designation).priority === 'Routine' ? 'Routine execution' : `${roleDetails(designation).priority} case owner`}</span><p>{roleDetails(designation).description}</p></div>
         {['regional', 'area'].includes(designation) && <><label htmlFor="assigned-region">{designation === 'area' ? 'Parent operating region' : 'Assigned operating region'}</label><div className="input-with-icon select-with-icon designation-input"><Icon name="pin" size={18} /><select id="assigned-region" value={region} onChange={(event) => { const nextRegion = event.target.value; setRegion(nextRegion); if (!OPERATING_AREAS_BY_REGION[nextRegion]?.includes(area)) setArea(OPERATING_AREAS_BY_REGION[nextRegion]?.[0] || ''); }} required>{OPERATING_REGIONS.map((item) => <option value={item} key={item}>{item}</option>)}</select></div></>}
         {designation === 'area' && <><label htmlFor="assigned-area">Assigned operating area</label><div className="input-with-icon select-with-icon designation-input"><Icon name="pin" size={18} /><select id="assigned-area" value={area} onChange={(event) => setArea(event.target.value)} required>{(OPERATING_AREAS_BY_REGION[region] || []).map((item) => <option value={item} key={item}>{item}</option>)}</select></div><small className="form-hint">Medium-priority cases in this area are assigned to you. Critical and high cases stay with senior owners.</small></>}
-        {['store', 'shift'].includes(designation) && <><label htmlFor="assigned-store">Assigned store ID</label><div className="input-with-icon designation-input"><Icon name="store" size={18} /><input id="assigned-store" value={assignedStoreId} onChange={(event) => setAssignedStoreId(event.target.value)} placeholder="Store_0017" pattern="[Ss][Tt][Oo][Rr][Ee]_\d{4}" title="Use a store ID such as Store_0017" required /></div></>}
+        {['store', 'shift'].includes(designation) && <><label htmlFor="assigned-store">Assigned store ID</label><div className="input-with-icon designation-input"><Icon name="store" size={18} /><input id="assigned-store" value={assignedStoreId} onChange={(event) => setAssignedStoreId(event.target.value)} placeholder="FB-17" pattern="FB-\d{2}" title="Use a store ID such as FB-17" required /></div></>}
         <label htmlFor="email">Work email</label>
         <div className="input-with-icon"><Icon name="users" size={18} /><input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required /></div>
         <div className="password-label"><label htmlFor="password">Password</label><button type="button" className="text-button" onClick={fillDemo}>Demo access</button></div>
@@ -512,7 +509,7 @@ function StoreQueue({ stores, onSelectStore, onViewAll }) {
 
 function AgentDecisionPanel({ stores, onSelectStore }) {
   const ranked = stores.filter((store) => Number(store.risk_score || 0) > 0).slice(0, 3);
-  const challengeStore = stores.find((store) => store.store_id === 'Store_0017');
+  const challengeStore = stores.find((store) => store.store_id === 'FB-17');
   const decisions = [...ranked];
   if (challengeStore && !decisions.some((store) => store.store_id === challengeStore.store_id)) decisions.push(challengeStore);
   return <section className="panel agent-decision-panel">
@@ -533,7 +530,7 @@ function AgentDecisionPanel({ stores, onSelectStore }) {
       {decisions.map((store, index) => {
         const best = (Array.isArray(store.action_options) ? store.action_options : []).find((option) => option.recommended) || store.action_options?.[0];
         const firstLink = (Array.isArray(store.signal_links) ? store.signal_links : [])[0];
-        const isChallenge = store.store_id === 'Store_0017';
+        const isChallenge = store.store_id === 'FB-17';
         const evidence = [];
         if (Number.isFinite(Number(store.sales_change_pct))) evidence.push(`Sales ${formatPct(store.sales_change_pct)}`);
         if (Number.isFinite(Number(store.transactions_change_pct))) evidence.push(`Transactions ${formatPct(store.transactions_change_pct)}`);
@@ -700,7 +697,7 @@ function WorkforcePage({ designation, region, area, assignedStoreId, stores, onS
     <div className="page-intro"><div><span className="eyebrow">SEVERITY-BASED DELEGATION</span><h2>Team workload</h2><p>Keep critical decisions with senior leadership and move execution to the closest responsible team.</p></div><div className="intro-counter"><strong>{formatNumber(queue?.total_tasks || 0)}</strong><span>tasks in your queue</span></div></div>
     <section className="workforce-hero panel">
       <div className="workforce-hero-icon"><Icon name="users" size={25} /></div>
-      <div className="workforce-hero-copy"><span className="eyebrow">YOUR ASSIGNMENT</span><h3>{role.label}</h3><p>{role.description}</p><div className="workforce-scope-row"><span className="workforce-scope-pill">{role.level}</span><span className="workforce-scope-pill">{designation === 'area' ? `${area} · ${region}` : designation === 'regional' ? region : ['store', 'shift'].includes(designation) ? assignedStoreId : 'All 1,000 stores'}</span><span className={`workforce-priority-pill priority-${role.priority.toLowerCase()}`}>{role.priority === 'Routine' ? 'Routine execution' : `${role.priority} case ownership`}</span></div></div>
+      <div className="workforce-hero-copy"><span className="eyebrow">YOUR ASSIGNMENT</span><h3>{role.label}</h3><p>{role.description}</p><div className="workforce-scope-row"><span className="workforce-scope-pill">{role.level}</span><span className="workforce-scope-pill">{designation === 'area' ? `${area} · ${region}` : designation === 'regional' ? region : ['store', 'shift'].includes(designation) ? assignedStoreId : 'All stores in the current dataset'}</span><span className={`workforce-priority-pill priority-${role.priority.toLowerCase()}`}>{role.priority === 'Routine' ? 'Routine execution' : `${role.priority} case ownership`}</span></div></div>
       <div className="workforce-hero-numbers"><div><strong>{formatNumber(queue?.total_tasks || 0)}</strong><span>Assigned tasks</span></div><div><strong>{formatNumber(queue?.escalation_count || 0)}</strong><span>Critical escalations to monitor</span></div></div>
     </section>
 
@@ -906,9 +903,9 @@ function StoreDrawer({ store, onClose, onQueueApproval, designation }) {
     { label: 'Low-stock products', value: formatNumber(store.low_stock_count) },
     { label: 'Delayed orders', value: formatNumber(store.delayed_orders) },
     { label: 'At-risk perishables', value: formatNumber(store.perishable_expiry_risk_count) },
-    { label: 'Gross margin rate', value: store.gross_margin_pct !== undefined ? `${Number(store.gross_margin_pct).toFixed(1)}%` : '—' },
-    { label: 'Margin movement', value: store.gross_margin_change_pp !== undefined ? `${Number(store.gross_margin_change_pp) > 0 ? '+' : ''}${Number(store.gross_margin_change_pp).toFixed(1)} pp` : '—', tone: Number(store.gross_margin_change_pp) < 0 ? 'negative-value' : '' },
-    { label: 'Complaints (latest)', value: `${formatNumber(store.complaints_current)} · ${formatPct(store.complaints_change_pct)}`, tone: Number(store.complaints_change_pct) > 0 ? 'negative-value' : '' },
+    { label: 'Gross margin rate', value: store.has_cost_data ? `${Number(store.gross_margin_pct).toFixed(1)}%` : '—' },
+    { label: 'Margin movement', value: store.has_cost_data ? `${Number(store.gross_margin_change_pp) > 0 ? '+' : ''}${Number(store.gross_margin_change_pp).toFixed(1)} pp` : '—', tone: Number(store.gross_margin_change_pp) < 0 ? 'negative-value' : '' },
+    { label: 'Complaints (latest)', value: store.has_complaint_data ? `${formatNumber(store.complaints_current)} · ${formatPct(store.complaints_change_pct)}` : '—', tone: Number(store.complaints_change_pct) > 0 ? 'negative-value' : '' },
     { label: 'Compliance score', value: store.checklist_score !== undefined ? `${Math.round(Number(store.checklist_score))}/100` : '—' },
   ];
   return <div className="drawer-scrim" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><aside className="store-drawer" aria-label={`${store.store_id} store details`}>
@@ -990,7 +987,7 @@ function DecisionCentrePage({ stores, onSelectStore, onQueueApproval }) {
 
 function WhatIfSimulator({ stores, onQueueApproval }) {
   const suitableStores = useMemo(() => stores.filter((store) => (store.low_stock_items || []).length || (store.expiry_items || []).length), [stores]);
-  const defaultStore = suitableStores.find((store) => store.store_id === 'Store_0017') || suitableStores[0];
+  const defaultStore = suitableStores.find((store) => store.store_id === 'FB-17') || suitableStores[0];
   const [storeId, setStoreId] = useState(defaultStore?.store_id || '');
   const [kind, setKind] = useState('transfer');
   const [sku, setSku] = useState('');
@@ -1140,29 +1137,29 @@ function StorePerformancePage({ stores, onSelectStore }) {
     <section className="panel performance-chart-panel"><div className="section-toolbar"><div><h3>Where the metric is weakening</h3><p>Switch the measure to see the stores with the largest reported decline or increase.</p></div><div className="performance-controls"><select className="sort-select" value={metric} onChange={(event) => setMetric(event.target.value)}>{options.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><div className="search-field"><Icon name="search" size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search store or area…" /></div></div></div>
       <div className="performance-bars">{bottom.map((store) => { const value = Number(store[metric] || 0); const width = Math.min(100, Math.abs(value) / Math.max(1, ...bottom.map((item) => Math.abs(Number(item[metric] || 0))) ) * 100); return <button className="performance-bar-row" key={store.store_id} onClick={() => onSelectStore(store)}><span className="performance-bar-name"><strong>{store.store_id}</strong><small>{store.location}</small></span><span className="performance-bar-track"><i className={value < 0 ? 'bar-negative' : 'bar-positive'} style={{ width: `${width}%` }} /></span><strong className={value < 0 ? 'negative-value' : 'positive-value'}>{selectedMetric.format(value)}</strong></button>; })}</div>
     </section>
-    <section className="panel performance-table-panel"><PanelHeader title="Commercial context by store" description="Review signals together; one metric alone rarely explains the whole story." /><div className="table-wrap"><table className="data-table"><thead><tr><th>Store</th><th>Sales</th><th>Footfall</th><th>Transactions</th><th>Avg. bill</th><th>Complaints</th><th>Margin movement</th><th /></tr></thead><tbody>{[...filtered].sort((a, b) => Number(a.sales_change_pct || 0) - Number(b.sales_change_pct || 0)).slice(0, 40).map((store) => <tr key={store.store_id}><td><button className="table-text-button" onClick={() => onSelectStore(store)}><strong>{store.store_id}</strong><small>{store.location}</small></button></td><td className={Number(store.sales_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.sales_change_pct)}</td><td className={Number(store.footfall_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.footfall_change_pct)}</td><td className={Number(store.transactions_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.transactions_change_pct)}</td><td className={Number(store.avg_bill_value_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.avg_bill_value_change_pct)}</td><td><strong>{formatNumber(store.complaints_current)}</strong><small className={Number(store.complaints_change_pct) > 0 ? 'negative-value' : ''}> {formatPct(store.complaints_change_pct)}</small></td><td className={Number(store.gross_margin_change_pp) < 0 ? 'negative-value' : 'positive-value'}>{store.gross_margin_change_pp !== undefined ? `${Number(store.gross_margin_change_pp).toFixed(1)} pp` : '—'}</td><td><button className="row-open" onClick={() => onSelectStore(store)} aria-label={`Inspect ${store.store_id}`}><Icon name="arrow" size={16} /></button></td></tr>)}</tbody></table></div></section>
-    <p className="data-note"><Icon name="question" size={14} /> Complaint counts and unit costs are generated demo data. Real deployments should use validated POS, customer-feedback and finance sources.</p>
+    <section className="panel performance-table-panel"><PanelHeader title="Commercial context by store" description="Review signals together; one metric alone rarely explains the whole story." /><div className="table-wrap"><table className="data-table"><thead><tr><th>Store</th><th>Sales</th><th>Footfall</th><th>Transactions</th><th>Avg. bill</th><th>Complaints</th><th>Margin movement</th><th /></tr></thead><tbody>{[...filtered].sort((a, b) => Number(a.sales_change_pct || 0) - Number(b.sales_change_pct || 0)).slice(0, 40).map((store) => <tr key={store.store_id}><td><button className="table-text-button" onClick={() => onSelectStore(store)}><strong>{store.store_id}</strong><small>{store.location}</small></button></td><td className={Number(store.sales_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.sales_change_pct)}</td><td className={Number(store.footfall_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.footfall_change_pct)}</td><td className={Number(store.transactions_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.transactions_change_pct)}</td><td className={Number(store.avg_bill_value_change_pct) < 0 ? 'negative-value' : 'positive-value'}>{formatPct(store.avg_bill_value_change_pct)}</td><td>{store.has_complaint_data ? <><strong>{formatNumber(store.complaints_current)}</strong><small className={Number(store.complaints_change_pct) > 0 ? 'negative-value' : ''}> {formatPct(store.complaints_change_pct)}</small></> : '—'}</td><td className={Number(store.gross_margin_change_pp) < 0 ? 'negative-value' : 'positive-value'}>{store.has_cost_data ? `${Number(store.gross_margin_change_pp).toFixed(1)} pp` : '—'}</td><td><button className="row-open" onClick={() => onSelectStore(store)} aria-label={`Inspect ${store.store_id}`}><Icon name="arrow" size={16} /></button></td></tr>)}</tbody></table></div></section>
+    <p className="data-note"><Icon name="question" size={14} /> Complaint records and unit costs are not present in this supplied dataset, so these metrics are shown as unavailable rather than invented. Add validated POS, customer-feedback and finance inputs when available.</p>
   </div>;
 }
 
 function ScenarioLabPage({ stores, onSelectStore, onQueueApproval, onRefresh }) {
   const scenarios = [
-    { id: 'Store_0017', title: 'Shelf gaps + late inbound + waste', intro: 'The main challenge case: sales, transactions, supply, wastage and stock pressure overlap.', lesson: 'Prioritize fast movers, check delayed PO lines, and reduce overstock elsewhere.' },
-    { id: 'Store_0008', title: 'Wastage rises while sales hold', intro: 'A store may sell steadily and still lose value through avoidable fresh-food wastage.', lesson: 'Check waste reason codes, product cover and repeat order quantities.' },
-    { id: 'Store_0012', title: 'Severe compliance exception', intro: 'A weak checklist and several open issues deserve a clear owner and follow-up.', lesson: 'Assign corrective tasks and schedule an inspection.' },
-    { id: 'Store_0021', title: 'Staff coverage and conversion pressure', intro: 'Very low attendance/productivity appears with a sharp transactions decline.', lesson: 'Review peak-hour coverage and front-of-store service before attributing cause.' },
-    { id: 'Store_0033', title: 'Perishable cover exceeds shelf life', intro: 'Inventory exists, but estimated time to sell can exceed catalog shelf life.', lesson: 'Inspect date codes, rotate stock and evaluate markdown/transfer.' },
-    { id: 'Store_0044', title: 'Average bill value falls', intro: 'Sales can look stable while average basket value drops materially.', lesson: 'Investigate category mix, availability, service and promotion behaviour.' },
+    { id: 'FB-17', title: 'Shelf gaps + late inbound + sales decline', intro: 'Twelve products are below reorder level while delayed supplier lines and falling sales need attention.', lesson: 'Prioritize fast movers, verify delayed PO lines and avoid duplicate orders before checking inbound quantities.' },
+    { id: 'FB-13', title: 'Fresh-food wastage rises sharply', intro: 'The current report shows a strong increase in wastage alongside commercial pressure.', lesson: 'Check waste reason codes, product cover, expiry exposure and repeat order quantities.' },
+    { id: 'FB-21', title: 'Compliance exception', intro: 'A weak checklist score and several open issues deserve a clear owner and follow-up.', lesson: 'Assign corrective tasks and schedule a documented follow-up inspection.' },
+    { id: 'FB-12', title: 'Staff coverage and sales pressure', intro: 'Low attendance and productivity appear alongside falling sales.', lesson: 'Review peak-hour coverage and service conditions before attributing cause.' },
+    { id: 'FB-02', title: 'Wastage and perishable cover', intro: 'The report flags elevated wastage and perishable items whose estimated stock cover needs checking.', lesson: 'Inspect date codes, rotate stock and evaluate a targeted transfer or markdown.' },
+    { id: 'FB-24', title: 'Sales and average bill decline', intro: 'Both sales and average bill value are down, so the team should investigate the basket mix and availability.', lesson: 'Investigate category mix, availability, service and promotion behaviour before broad discounting.' },
   ];
   return <div className="page-stack premium-page">
-    <div className="page-intro"><div><span className="eyebrow">REPEATABLE REVIEW DEMO</span><h2>Scenario lab</h2><p>Walk a reviewer through the curated Challenge 04 cases without relying on a random dashboard refresh.</p></div><button className="secondary-button" onClick={() => onRefresh(false, true)}><Icon name="refresh" size={15} /> Generate a new demo batch</button></div>
+    <div className="page-intro"><div><span className="eyebrow">REPEATABLE REVIEW DEMO</span><h2>Scenario lab</h2><p>Walk a reviewer through the highest-signal cases in the currently loaded franchise dataset.</p></div><button className="secondary-button" onClick={() => onRefresh(false, true)}><Icon name="refresh" size={15} /> Re-analyze dataset</button></div>
     <div className="scenario-intro-note"><Icon name="info" size={18} /><div><strong>Test the reasoning, not just the screen.</strong><p>Each card opens the store's current data-derived evidence, signal links and action options. The selected case is not a display-only override.</p></div></div>
     <section className="scenario-grid">{scenarios.map((scenario, index) => {
       const store = stores.find((item) => item.store_id === scenario.id);
       const best = getBestOption(store);
-      return <article className={`scenario-card ${scenario.id === 'Store_0017' ? 'scenario-featured' : ''}`} key={scenario.id}><div className="scenario-card-top"><span className="scenario-number">{String(index + 1).padStart(2, '0')}</span><PriorityBadge priority={store?.priority || 'Low'} /></div><h3>{scenario.title}</h3><div className="scenario-store-line"><Icon name="store" size={15} /><strong>{scenario.id}</strong><span>{store?.location || 'Awaiting report'}</span></div><p>{scenario.intro}</p><div className="scenario-lesson"><span className="micro-label">WHAT A STRONG AGENT SHOULD DO</span><small>{scenario.lesson}</small></div><div className="scenario-evidence">{store && <><span>{formatPct(store.sales_change_pct)} sales</span><span>{formatNumber(store.low_stock_count)} low stock</span><span>{formatPct(store.fresh_wastage_growth_pct)} fresh waste</span></>}</div><div className="scenario-actions"><button className="secondary-button" onClick={() => store && onSelectStore(store)} disabled={!store}>Open case evidence</button>{best?.action && <button className="primary-button" onClick={() => store && onQueueApproval(store, best.action)}>Review next move</button>}</div></article>;
+      return <article className={`scenario-card ${scenario.id === 'FB-17' ? 'scenario-featured' : ''}`} key={scenario.id}><div className="scenario-card-top"><span className="scenario-number">{String(index + 1).padStart(2, '0')}</span><PriorityBadge priority={store?.priority || 'Low'} /></div><h3>{scenario.title}</h3><div className="scenario-store-line"><Icon name="store" size={15} /><strong>{scenario.id}</strong><span>{store?.location || 'Awaiting report'}</span></div><p>{scenario.intro}</p><div className="scenario-lesson"><span className="micro-label">WHAT A STRONG AGENT SHOULD DO</span><small>{scenario.lesson}</small></div><div className="scenario-evidence">{store && <><span>{formatPct(store.sales_change_pct)} sales</span><span>{formatNumber(store.low_stock_count)} low stock</span><span>{formatPct(store.fresh_wastage_growth_pct)} fresh waste</span></>}</div><div className="scenario-actions"><button className="secondary-button" onClick={() => store && onSelectStore(store)} disabled={!store}>Open case evidence</button>{best?.action && <button className="primary-button" onClick={() => store && onQueueApproval(store, best.action)}>Review next move</button>}</div></article>;
     })}</section>
-    <p className="data-note"><Icon name="shield" size={14} /> Refreshed demo snapshots keep the scenario labels but regenerate source signals; results may move as the risk engine recalculates them.</p>
+    <p className="data-note"><Icon name="shield" size={14} /> Re-analysis recalculates the current report without replacing or regenerating the supplied source data.</p>
   </div>;
 }
 
@@ -1179,7 +1176,7 @@ function App() {
   const [designation, setDesignation] = useState(() => { try { const value = localStorage.getItem('freshbasket-manager-designation') || 'head'; return roleDetails(value).key; } catch { return 'head'; } });
   const [region, setRegion] = useState(() => { try { return storedRegionOrDefault(localStorage.getItem('freshbasket-manager-region')); } catch { return 'Karnataka South'; } });
   const [area, setArea] = useState(() => { try { const savedRegion = storedRegionOrDefault(localStorage.getItem('freshbasket-manager-region')); return storedAreaOrDefault(savedRegion, localStorage.getItem('freshbasket-manager-area')); } catch { return 'Bengaluru Central'; } });
-  const [assignedStoreId, setAssignedStoreId] = useState(() => { try { return normalizeStoreId(localStorage.getItem('freshbasket-manager-store')); } catch { return 'Store_0017'; } });
+  const [assignedStoreId, setAssignedStoreId] = useState(() => { try { return normalizeStoreId(localStorage.getItem('freshbasket-manager-store')); } catch { return 'FB-17'; } });
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [workspacePanel, setWorkspacePanel] = useState(null);
   const profileMenuRef = useRef(null);
@@ -1449,13 +1446,13 @@ function App() {
     setDesignation(cleanDesignation);
     setRegion(selectedRegion || 'Karnataka South');
     setArea(selectedArea || 'Bengaluru Central');
-    setAssignedStoreId(storeId || 'Store_0017');
+    setAssignedStoreId(storeId || 'FB-17');
     try {
       localStorage.setItem('freshbasket-manager-name', name);
       localStorage.setItem('freshbasket-manager-designation', cleanDesignation);
       localStorage.setItem('freshbasket-manager-region', selectedRegion || 'Karnataka South');
       localStorage.setItem('freshbasket-manager-area', selectedArea || 'Bengaluru Central');
-      localStorage.setItem('freshbasket-manager-store', storeId || 'Store_0017');
+      localStorage.setItem('freshbasket-manager-store', storeId || 'FB-17');
     } catch { /* Login still works for this session. */ }
     sessionStorage.setItem('freshbasket-demo-session-v2', 'active');
     navigateToRoute({ screen: 'workspace', page: cleanDesignation === 'head' ? 'overview' : 'workforce' });

@@ -38,10 +38,61 @@ def safe_pct_change(current: pd.Series, previous: pd.Series) -> pd.Series:
 
 
 def read_csv_required(filename: str) -> pd.DataFrame:
+    """Load a required source file and adapt the Challenge 04 schema in memory.
+
+    The supplied franchise dataset uses ``store`` rather than ``store_id`` and
+    has daily staff/customer rows plus repeated compliance inspections. This
+    adapter preserves the original CSVs exactly while presenting one normalized
+    store-level schema to the existing, richer analyzer.
+    """
     path = DATA_DIR / filename
     if not path.exists():
-        raise FileNotFoundError(f"Required dataset not found: {path}. Run data_generator.py first.")
-    return pd.read_csv(path)
+        raise FileNotFoundError(f"Required dataset not found: {path}.")
+    frame = pd.read_csv(path)
+    if "store" in frame.columns and "store_id" not in frame.columns:
+        frame = frame.rename(columns={"store": "store_id"})
+
+    if filename == "stores.csv":
+        if "operating_status" in frame.columns and "status" not in frame.columns:
+            # The source may contain historical closure notes in parentheses;
+            # use the leading current status rather than matching the word anywhere.
+            frame["status"] = frame["operating_status"].astype(str).str.split("(").str[0].str.strip()
+        # This dataset covers Bengaluru locations. Add the existing workspace's
+        # hierarchy fields as transparent geography labels for role scoping.
+        if "region" not in frame.columns:
+            frame["region"] = "Karnataka South"
+        if "area" not in frame.columns:
+            north = {"Malleshwaram", "Rajajinagar", "RT Nagar", "Hebbal", "Yelahanka", "Hennur", "Sahakar Nagar", "Nagarbhavi"}
+            central = {"Jayanagar", "Banashankari", "Basavanagudi", "Vijayanagar", "Ulsoor", "Indiranagar", "Domlur", "Kalyan Nagar"}
+            frame["area"] = frame["location"].astype(str).map(
+                lambda value: "Bengaluru North" if value in north else ("Bengaluru Central" if value in central else "Bengaluru South")
+            )
+        if frame["store_id"].isna().any() or frame["store_id"].duplicated().any():
+            raise ValueError("stores.csv must contain one non-empty, unique row per store/store_id.")
+
+    elif filename == "staff.csv":
+        if "date" in frame.columns:
+            frame["date"] = pd.to_datetime(frame["date"], errors="coerce")
+            frame = frame.sort_values("date").groupby("store_id", as_index=False).tail(1).copy()
+        if "attendance" not in frame.columns:
+            present = pd.to_numeric(frame.get("staff_present", 0), errors="coerce")
+            level = pd.to_numeric(frame.get("staffing_level", 0), errors="coerce").clip(lower=1)
+            frame["attendance"] = (present / level).clip(0, 1).fillna(0)
+        if "productivity" not in frame.columns:
+            tps = pd.to_numeric(frame.get("transactions_per_staff", 0), errors="coerce")
+            frame["productivity"] = (tps / 10.0).clip(0, 1.5).fillna(0)
+
+    elif filename == "compliance.csv":
+        if "inspection_date" in frame.columns:
+            frame["inspection_date"] = pd.to_datetime(frame["inspection_date"], errors="coerce")
+            frame = frame.sort_values("inspection_date").groupby("store_id", as_index=False).tail(1).copy()
+
+    elif filename == "purchase_orders.csv":
+        # Dataset status labels include strings such as "Delayed – no revised date".
+        # The analyzer below recognises any status beginning with "delayed".
+        pass
+
+    return frame
 
 
 def _prepare_dates(frame: pd.DataFrame) -> pd.DataFrame:
@@ -134,6 +185,7 @@ def analyze_stores() -> pd.DataFrame:
         sales_work, ["revenue", "qty_sold", "gross_profit"], "sales", sum_values=["revenue", "qty_sold", "gross_profit"]
     )
     report = stores.copy()
+    report["has_cost_data"] = bool(has_cost_data)
     report = _merge_safely(report, sales_summary)
     report = _merge_safely(report, sales_previous)
     report["total_sales"] = _column_or_zero(report, "current_sales_revenue")
@@ -239,7 +291,7 @@ def analyze_stores() -> pd.DataFrame:
         is_overdue = purchase_orders["expected_date"].notna() & (purchase_orders["expected_date"] < today)
     else:
         is_overdue = pd.Series(False, index=purchase_orders.index)
-    delayed_status = purchase_orders["status"].eq("delayed")
+    delayed_status = purchase_orders["status"].str.startswith("delayed", na=False)
     # A delayed status is meaningful on its own; overdue pending/dispatched POs
     # are also counted as a supplier warning.
     purchase_orders["is_delayed_order"] = delayed_status | (is_overdue & ~purchase_orders["status"].eq("delivered"))
@@ -249,6 +301,10 @@ def analyze_stores() -> pd.DataFrame:
     report = _merge_safely(report, delayed_summary)
 
     # 5. Customer snapshots and changes.
+    has_complaint_data = any(col in customers.columns for col in [
+        "complaints", "stock_availability_complaints", "fresh_quality_complaints", "service_complaints"
+    ])
+    report["has_complaint_data"] = bool(has_complaint_data)
     customer_cols = [
         col for col in [
             "footfall", "transactions", "avg_bill_value", "complaints",
@@ -861,7 +917,7 @@ def analyze_stores() -> pd.DataFrame:
         ascending=[False, False, True],
     ).reset_index(drop=True)
     report["urgency_rank"] = np.arange(1, len(report) + 1)
-    report["data_as_of"] = pd.Timestamp.today().strftime("%Y-%m-%d")
+    report["data_as_of"] = sales_current_date.strftime("%Y-%m-%d") if sales_current_date is not None else pd.Timestamp.today().strftime("%Y-%m-%d")
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     report.to_csv(REPORT_FILE, index=False)
@@ -874,9 +930,8 @@ def analyze_stores() -> pd.DataFrame:
     print("\nHighest-urgency stores:")
     print(report[["store_id", "risk_score", "priority", "detected_problems"]].head(8).to_string(index=False, max_colwidth=95))
     print("\nScenario validation:")
-    scenario_ids = ["Store_0017", "Store_0008", "Store_0012", "Store_0021", "Store_0033", "Store_0044"]
     scenario_cols = ["store_id", "risk_score", "priority", "sales_change_pct", "gross_margin_change_pp", "transactions_change_pct", "complaints_change_pct", "wastage_growth_pct", "fresh_wastage_growth_pct", "detected_problems"]
-    print(report.loc[report.store_id.isin(scenario_ids), scenario_cols].sort_values("store_id").to_string(index=False, max_colwidth=80))
+    print(report[scenario_cols].head(6).to_string(index=False, max_colwidth=80))
     print(f"\nRisk report written to: {REPORT_FILE}")
     return report
 

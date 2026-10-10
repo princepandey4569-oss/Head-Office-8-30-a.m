@@ -1,3 +1,2 @@
 timestamp,store_id,action,decision,execution_status,manager_note,manager_name,manager_designation,manager_region,manager_area,manager_store_id
-2026-10-10T06:54:51+05:30,Store_0135,"Check shelf availability, customer feedback, conversion and average basket before changing promotions",Approved,Simulated,please check this,Prince Pandey,area,Karnataka Coast,Mangaluru Coastal,Store_0017
-2026-10-10T06:57:05+05:30,Store_0135,"Review wastage reasons and order quantities, then markdown eligible fresh stock before expiry",Approved,Simulated,Review the wastage,Prince Pandey,area,Karnataka Coast,Mangaluru Coastal,Store_0017
+2026-10-10T12:51:34+05:30,FB-13,"Review wastage reasons and order quantities, then markdown eligible fresh stock before expiry",Approved,Simulated,,No Name,regional,Karnataka South,Bengaluru North,FB-17

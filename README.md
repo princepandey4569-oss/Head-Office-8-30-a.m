@@ -7,13 +7,13 @@ This repository now includes `Dockerfile`, `render.yaml`, and `DEPLOY_ON_RENDER.
 
 FreshBasket AI is a self-contained demonstration workspace for franchise operations. It combines store sales, inventory, wastage, supplier, customer, staffing and compliance signals into a ranked morning brief, store-level explanations and manager-reviewed simulated actions.
 
-The React interface is driven by the FastAPI report rather than hard-coded dashboard cards. It includes a public main page and a redesigned, responsive sign-in experience: a focused manager form, high-contrast blue/cyan styling with restrained orange accents, a branded access header, clearer labels, visible demo credentials, and separately tuned light and dark surfaces. The sign-in screen also includes a visible “Go to main page” option. The login and landing page preserve the same light/day and dark theme preference. The workspace also includes a manager-name field on sign-in, a personalized morning greeting, a profile menu with My profile / Workspace preferences / Help & support / Sign out, a persistent light/day and dark theme switch, a working SVG risk distribution chart, a problem-signal view, store search and filters, store-level evidence, browser-saved daily task checkmarks, and a server-recorded action-decision history. The toolbar refresh control generates a new synthetic demo dataset, reapplies the curated operational scenarios, runs the analyzer, and then reloads the dashboard from the new report. Browser reloads alone intentionally keep the most recently generated dataset.
+The React interface is driven by the FastAPI report rather than hard-coded dashboard cards. It includes a public main page and a redesigned, responsive sign-in experience: a focused manager form, high-contrast blue/cyan styling with restrained orange accents, a branded access header, clearer labels, visible demo credentials, and separately tuned light and dark surfaces. The sign-in screen also includes a visible “Go to main page” option. The login and landing page preserve the same light/day and dark theme preference. The workspace also includes a manager-name field on sign-in, a personalized morning greeting, a profile menu with My profile / Workspace preferences / Help & support / Sign out, a persistent light/day and dark theme switch, a working SVG risk distribution chart, a problem-signal view, store search and filters, store-level evidence, browser-saved daily task checkmarks, and a server-recorded action-decision history. The toolbar refresh re-analyzes the currently installed franchise dataset and reloads the report. It does not replace or regenerate the source CSVs. Browser reloads keep the current report.
 
 ## What the project does
 
 - **Public main page:** an introductory homepage with a workspace preview, capability cards, the agent workflow, challenge details and a direct sign-in route. The login page has a “Go to main page” control; the workspace logo returns to the dashboard overview.
 - **Overview:** current network totals, assessed priority counts, average risk, detected signal counts and highest-urgency stores.
-- **Store operations:** searchable and filterable 1,000-store directory with risk score and an inspection drawer.
+- **Store operations:** searchable and filterable 25-store directory for the supplied franchise dataset with risk score and an inspection drawer.
 - **Risk analytics:** risk-band distribution, problem-category counts, gross-margin pressure, customer complaint patterns and stores with large commercial declines.
 - **Morning decision brief:** an Observe → Connect → Compare → Recommend → Manager approval flow that opens the most urgent stores with linked signals, comparison options and action evidence.
 - **Decision Centre:** three priority interventions with linked evidence, ranked response options, and an embedded what-if simulator for transfer, replenishment, markdown or wait-and-monitor.
@@ -21,7 +21,7 @@ The React interface is driven by the FastAPI report rather than hard-coded dashb
 - **Stock Balancing:** network-level same-SKU donor/recipient proposals prioritised by recipient urgency; proposed quantities are capped across the displayed list so one donor SKU is not over-allocated in the suggestion table.
 - **Waste & Expiry:** identifies stores with rising wastage and/or catalog-shelf-life stock-cover exposure, with clearly marked synthetic-cost estimates and product-level evidence.
 - **Store Performance:** compares sales, transactions, footfall, average bill value, complaints and synthetic gross-margin movement; users can open each affected store to inspect its evidence.
-- **Scenario Lab:** repeatable review path for the curated Challenge 04 cases (Store 17, 08, 12, 21, 33 and 44) and a button to generate a different synthetic batch for robustness testing.
+- **Scenario Lab:** repeatable review path for current dataset cases (FB-17, FB-13, FB-21, FB-12, FB-02 and FB-24); refresh re-analyzes the same source data.
 - **Store-level risk explanation:** weighted contributions by inventory, wastage, suppliers, compliance, staffing, sales, margin, customers and expiry, with any minimum-risk escalation floor shown separately.
 - **Actionable fresh-stock evidence:** the high-velocity short items, days of cover, reorder gap, open PO quantity, suggested replenishment, shelf-life exposure and potential donor-store transfer candidates.
 - **Feedback themes:** synthetic counts for shelf availability, fresh-food quality and service/checkout so customer complaints can be examined alongside stock, waste and transaction movement.
@@ -40,7 +40,7 @@ The project deliberately avoids charting-library dependencies. The donut and bar
 
 The workspace uses browser History API navigation so the in-app **Back** and **Next** controls work alongside the browser Back/Forward buttons. The selected public screen or workspace page is encoded in the page URL, and the current route history is retained for the open browser tab. Reloading the page returns to the current page when the demo session is still active.
 
-Refreshing dashboard data does not navigate away from the current page or clear the existing report while requests are pending. Newly returned API data updates the dashboard state; if the API is unavailable, the current page remains visible with a retry message. The refresh action is the only control that generates a new synthetic data snapshot for Head Office; ordinary page navigation and a normal browser reload do not regenerate the dataset.
+Refreshing dashboard data does not navigate away from the current page or clear the existing report while requests are pending. Newly returned API data updates the dashboard state; if the API is unavailable, the current page remains visible with a retry message. The refresh action re-analyzes the currently installed source data; it does not regenerate or overwrite source rows. Ordinary page navigation and a normal browser reload do not regenerate the dataset.
 
 ## Typography readability
 
@@ -80,7 +80,7 @@ For the challenge review, see [`ARCHITECTURE.svg`](ARCHITECTURE.svg), the timed 
 | `POST` | `/api/decision/simulate` | Non-persistent transfer/replenishment/markdown/wait what-if calculation |
 | `POST` | `/api/actions` | Record a manager's approve/reject decision and note |
 | `GET` | `/api/actions` | Decision history, including manager identity |
-| `POST` | `/api/demo/refresh` | Generate and analyze a new synthetic demo snapshot |
+| `POST` | `/api/demo/refresh` | Re-analyze the installed franchise dataset without changing source CSVs |
 
 ## Demo login
 
@@ -101,13 +101,13 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Generate the demo report the first time, or whenever you intentionally want to reset the synthetic dataset:
+For this replacement franchise dataset, analyze the supplied source records with:
 
 ```powershell
-python data_generator.py
-python inject_problem.py
 python data_analyzer.py
 ```
+
+**Do not run `data_generator.py` or `inject_problem.py` while using this dataset.** Those legacy scripts create the old `Store_0001` / 1,000-store synthetic schema and would replace the provided `FB-01` through `FB-25` records.
 
 Start the API in the project directory:
 
@@ -140,11 +140,10 @@ Tests cover priority thresholds, dashboard counts, filtering/search, problem sum
 
 ## Data flow and interpretation
 
-1. `data_generator.py` creates 1,000 stores, a 100-SKU catalogue and the synthetic source datasets.
-2. `inject_problem.py` alters source signals for repeatable scenarios; it does not assign random risk labels.
-3. `data_analyzer.py` joins the datasets, compares snapshots, detects operational concerns, computes transparent rule-based risk scores, creates cross-signal explanations and compares practical actions. It writes the report plus structured decision evidence to `data/store_risk_report.csv`.
-4. `backend.py` exposes the report over the API, serves `/api/agent/morning-brief`, decodes structured evidence for store detail views, calculates stock balancing and waste/expiry views, runs non-persistent what-if comparisons, and records decisions in `data/approved_actions.csv`.
-5. The React UI requests these APIs and calculates display-only summaries from the returned values. The toolbar refresh uses `POST /api/demo/refresh` to create a fresh synthetic batch in a staging directory, rerun the analysis, then replace the current report inputs and refresh timestamp. Existing approval history is preserved.
+1. The supplied dataset contains 25 stores (`FB-01` to `FB-25`), 42 SKUs and dated sales, customer, staff and wastage records plus inventory, purchase orders and compliance inspections.
+2. `data_analyzer.py` adapts the provided column names in memory, selects the latest store-level staff/inspection records, compares dated snapshots, detects operational concerns, computes rule-based risk scores, and writes the structured report to `data/store_risk_report.csv`.
+3. `backend.py` exposes the report over the API, serves `/api/agent/morning-brief`, decodes structured evidence for store detail views, calculates stock balancing and waste/expiry views, runs non-persistent what-if comparisons, and records decisions in `data/approved_actions.csv`.
+4. The React UI requests these APIs and calculates display-only summaries. The toolbar refresh re-runs the analyzer on the installed source data and updates refresh metadata; it does not overwrite source CSVs or change the store network.
 
 See [`CHALLENGE_04_VALIDATION.md`](CHALLENGE_04_VALIDATION.md) for a point-by-point mapping from the official Challenge 04 requirements to the implementation and verification evidence. [`ARCHITECTURE.svg`](ARCHITECTURE.svg) shows the data and decision flow; [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) gives a timed 3-minute presentation plan.
 

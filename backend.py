@@ -145,62 +145,25 @@ def write_refresh_metadata(payload: dict) -> None:
 
 
 def regenerate_demo_snapshot() -> dict:
-    """Build a fresh synthetic dataset in a staging folder, analyze it, then commit it.
+    """Re-analyze the currently installed franchise dataset without replacing it.
 
-    The existing report remains intact if generation or analysis fails. The approval
-    history is deliberately kept outside the list of replaced dataset files.
+    The supplied Challenge 04 dataset is authoritative. Refresh must never invoke
+    the legacy generator/injector because those scripts create a different 1,000-
+    store schema and would silently replace the user's new data.
     """
-    global _last_demo_seed
     if not _refresh_lock.acquire(blocking=False):
-        raise HTTPException(status_code=409, detail="A demo data refresh is already in progress.")
-
-    stage_path: Path | None = None
-    old_generator_dir = data_generator.DATA_DIR
-    old_injector_dir = inject_problem.DATA_DIR
-    old_analyzer_dir = data_analyzer.DATA_DIR
-    old_analyzer_report = data_analyzer.REPORT_FILE
+        raise HTTPException(status_code=409, detail="A data refresh is already in progress.")
     try:
-        seed = secrets.randbits(32)
-        while seed == _last_demo_seed:
-            seed = secrets.randbits(32)
-
-        # Build a complete batch away from the live data directory first.
-        stage_path = Path(tempfile.mkdtemp(prefix="freshbasket-refresh-", dir=BASE_DIR))
-        data_generator.DATA_DIR = stage_path
-        inject_problem.DATA_DIR = stage_path
-        data_analyzer.DATA_DIR = stage_path
-        data_analyzer.REPORT_FILE = stage_path / "store_risk_report.csv"
-
-        data_generator.main(seed=seed)
-        inject_problem.main()
         analyzed_report = data_analyzer.analyze_stores()
-        if analyzed_report.empty or len(analyzed_report) != data_generator.NUM_STORES:
-            raise RuntimeError("The newly analyzed report did not contain the expected store network.")
-
-        # Replace only the known report inputs after the new analysis succeeds.
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        committed_files = [
-            "stores.csv", "products.csv", "sales.csv", "inventory.csv",
-            "wastage.csv", "purchase_orders.csv", "customers.csv",
-            "staff.csv", "compliance.csv", "store_risk_report.csv",
-        ]
-        for filename in committed_files:
-            source = stage_path / filename
-            if not source.is_file():
-                raise RuntimeError(f"The refreshed dataset is missing {filename}.")
-        # Check everything exists before beginning the commit. Each file is moved
-        # atomically; the normal UI refresh waits until all replacements complete.
-        for filename in committed_files:
-            os.replace(stage_path / filename, DATA_DIR / filename)
-
+        if analyzed_report.empty:
+            raise RuntimeError("Analysis returned an empty store report.")
         refreshed_at = datetime.now().astimezone().isoformat(timespec="seconds")
-        metadata = {"refreshed_at": refreshed_at, "seed": seed, "mode": "synthetic_demo"}
+        metadata = {"refreshed_at": refreshed_at, "mode": "provided_dataset_reanalysis"}
         write_refresh_metadata(metadata)
-        _last_demo_seed = seed
         counts = analyzed_report["priority"].astype(str).str.title().value_counts()
         avg_risk = pd.to_numeric(analyzed_report["risk_score"], errors="coerce").fillna(0).mean()
         return {
-            "message": "A fresh synthetic demo snapshot was generated and re-analyzed.",
+            "message": "The installed franchise dataset was re-analyzed. Source CSV files were not changed.",
             "refreshed_at": refreshed_at,
             "total_stores": int(len(analyzed_report)),
             "critical_stores": int(counts.get("Critical", 0)),
@@ -212,15 +175,8 @@ def regenerate_demo_snapshot() -> dict:
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Could not refresh synthetic demo data: {exc}") from exc
+        raise HTTPException(status_code=500, detail=f"Could not analyze the installed dataset: {exc}") from exc
     finally:
-        data_generator.DATA_DIR = old_generator_dir
-        inject_problem.DATA_DIR = old_injector_dir
-        data_analyzer.DATA_DIR = old_analyzer_dir
-        data_analyzer.REPORT_FILE = old_analyzer_report
-        if stage_path is not None and stage_path.exists():
-            import shutil
-            shutil.rmtree(stage_path, ignore_errors=True)
         _refresh_lock.release()
 
 
