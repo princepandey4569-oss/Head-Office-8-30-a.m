@@ -1,0 +1,48 @@
+FRESHBASKET AI — START HERE
+===========================
+
+RUN ON WINDOWS
+1. Install Python 3.10+ and Node.js 18+ (npm included).
+2. Extract the entire project folder.
+3. Double-click Run_FreshBasket_AI.bat.
+4. Keep both server windows open.
+5. Open http://localhost:5173 if the browser does not open automatically.
+
+EMPLOYEE NAME, DESIGNATION & SCOPE
+Enter a name and choose a demo designation at sign-in. Regional and Area managers choose their assigned region; Area managers also choose an operating area. Store Managers and Shift Supervisors enter one store ID.
+Critical cases belong to the Head of Franchise Operations; High cases to Regional Operations; Medium cases to Area Operations; Low cases to Store Managers; routine checks to Shift Supervisors. Higher-risk cases can create local execution tasks but keep their primary owner.
+Click the top-right avatar to open My profile, Workspace preferences, Help & support, or Sign out. The demo designation is saved in this browser.
+
+MAIN PAGE
+The sign-in page includes “Go to main page” to open the public FreshBasket overview.
+Use “Open workspace” or “Go to main workspace” on the main page to return to sign-in.
+The FreshBasket logo inside the signed-in workspace returns to the Overview dashboard.
+
+THEME
+Light/day mode and dark mode can be changed from the login screen, top toolbar, or Workspace preferences.
+Your choice is saved in this browser and stays selected after refresh.
+
+DEMO LOGIN
+Email:    ops@freshbasket.demo
+Password: freshbasket123
+
+API DOCUMENTATION
+http://127.0.0.1:8000/docs
+
+RUN TESTS
+From the project folder:
+    python -m pip install -r requirements-dev.txt
+    python -m pytest
+
+IMPORTANT
+- All supplied business data is synthetic and reproducible.
+- The login is a presentation-only demo gate. Designation selection previews the role queue; it is not secure authentication or a production authorization system.
+- Risk scores are rule-based indicators, not trained-model predictions or proof of cause.
+- Approving an action records a simulated result; no supplier order or external system is changed.
+- Daily task checkmarks are saved in this browser; decisions are stored by the backend.
+- Added Decision Centre, what-if simulator, stock balancing, waste/expiry insights,
+  store performance comparisons, Scenario Lab, and designation-based task routing.
+- What-if calculations are illustrative only and do not change store inventory or orders.
+- See ARCHITECTURE.svg for the data flow and DEMO_SCRIPT.md for a 3-minute review demo.
+- Challenge 04 validation and the Store 17 scenario map are documented in CHALLENGE_04_VALIDATION.md.
+- See WORKFORCE_DELEGATION.md for the responsibility ladder and role-switch demo.
